@@ -11,11 +11,17 @@ $ python rpi_rc.py
 #GPIO Pins
 
 OUTPUT - GPIO Pin
+
 1       =>      17
+
 2       =>      27
+
 3       =>      22
+
 4       =>      23
+
 5       =>      24
+
 
 #Requirements
 
