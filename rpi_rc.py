@@ -1,8 +1,10 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-from gi.repository import Gtk
+from gi import require_version
+require_version('Gtk', '3.0')
 
+from gi.repository import Gtk
 
 #Define BCM Raspberry Pi pins for use
 P0 = 17
@@ -22,7 +24,7 @@ class Pwm_Pins:
         GPIO.setup(P4,GPIO.OUT)
 
         self.freq = [50, 50, 50, 50, 50]
-        self.dc = [7.1, 7.1, 4.6, 7.1, 7.1]
+        self.dc = [7.1, 7.1, 4.7, 7.1, 4.7]
 
         self.pin = [ GPIO.PWM(P0,self.freq[0]) \
                     ,GPIO.PWM(P1,self.freq[1]) \
@@ -76,7 +78,9 @@ class MainWindow:
         self.builder = Gtk.Builder()
         self.builder.add_from_file("interfaz.glade")
         handlers = {
-            "on_delete": self.exit_all
+            "on_delete": self.exit_all,
+            "on_move_control": self.on_move_control,
+            "on_release_control": self.on_release_control
         }
 
         self.builder.connect_signals(handlers)
@@ -92,11 +96,11 @@ class MainWindow:
         self.aux_scale = self.builder.get_object("aux_scale")
         self.aux_adj = self.builder.get_object("aux_adj")
 
-        self.roll_adj.connect("value_changed",self.print_values)
-        self.pitch_adj.connect("value_changed",self.print_values)
-        self.throttle_adj.connect("value_changed",self.print_values)
-        self.yaw_adj.connect("value_changed",self.print_values)
-        self.aux_adj.connect("value_changed",self.print_values)
+        #self.roll_adj.connect("value_changed",self.print_values)
+        #self.pitch_adj.connect("value_changed",self.print_values)
+        #self.throttle_adj.connect("value_changed",self.print_values)
+        #self.yaw_adj.connect("value_changed",self.print_values)
+        #self.aux_adj.connect("value_changed",self.print_values)
         self.pwm = Pwm_Pins()
         self.pwm.start()
 
@@ -105,7 +109,7 @@ class MainWindow:
         self.window.show_all()
         Gtk.main()
 
-    def print_values(self,widget):
+    def on_move_control(self,widget,thing=0):
         print "ROLL: " + str(self.roll_adj.get_value()) + " - " \
             +"PITCH: " + str(self.pitch_adj.get_value()) + " - " \
             + "THROTTLE: " + str(self.throttle_adj.get_value()) + " - " \
@@ -115,18 +119,46 @@ class MainWindow:
         if widget == self.roll_adj:
             self.pwm.set_dc(0,float(self.roll_adj.get_value()))
 
-        if widget == self.pitch_adj:
+        elif widget == self.pitch_adj:
             self.pwm.set_dc(1,float(self.pitch_adj.get_value()))
 
-        if widget == self.throttle_adj:
+        elif widget == self.throttle_adj:
             self.pwm.set_dc(2,float(self.throttle_adj.get_value()))
 
-        if widget == self.yaw_adj:
+        elif widget == self.yaw_adj:
             self.pwm.set_dc(3,float(self.yaw_adj.get_value()))
 
-        if widget == self.aux_adj:
+        elif widget == self.aux_adj:
             self.pwm.set_dc(4,float(self.aux_adj.get_value()))
 
+    def on_release_control(self,scale,button):
+        if scale == self.roll_scale:
+            self.pwm.set_dc(0,7.1)
+            self.roll_adj.set_value(7.1)
+
+        elif scale == self.pitch_scale:
+            self.pwm.set_dc(1,7.1)
+            self.pitch_adj.set_value(7.1)
+
+        elif scale == self.throttle_scale:
+            self.pwm.set_dc(2,4.7)
+            self.throttle_adj.set_value(4.7)
+
+        elif scale == self.yaw_scale:
+            self.pwm.set_dc(3,7.1)
+            self.yaw_adj.set_value(7.1)
+
+        elif scale == self.aux_scale:
+            self.pwm.set_dc(4,4.7)
+            self.aux_adj.set_value(4.7)
+
+
+
+        print "ROLL: " + str(self.roll_adj.get_value()) + " - " \
+            +"PITCH: " + str(self.pitch_adj.get_value()) + " - " \
+            + "THROTTLE: " + str(self.throttle_adj.get_value()) + " - " \
+            + "YAW: " + str(self.yaw_adj.get_value()) + " - " \
+            + "AUX: " + str(self.aux_adj.get_value())
 
     def exit_all(self,args,extra):
         Gtk.main_quit()
